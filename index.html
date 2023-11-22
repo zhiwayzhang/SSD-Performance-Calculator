@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SSD理论性能计算器</title>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            text-align: center;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+
+        h2 {
+            color: #333;
+        }
+
+        label {
+            text-align: right;
+            display: inline-block;
+            margin: 10px 0;
+            width: 250px;
+            margin-right: 10px;
+            font-weight: bold;
+            font-size: 20px;
+        }
+
+        input {
+            font-size: 20px;
+            padding: 10px;
+            margin: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            width: 10%;
+        }
+
+        button {
+            padding: 12px;
+            margin: 10px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        #result {
+            margin-top: 20px;
+            font-weight: bold;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #result p {
+            width: 100%;
+            max-width: 300px;
+            margin: 10px 0;
+            font-size: 20px;
+            width: 300px;
+            padding: 10px;
+            background-color: #d0c0c0;
+            border-radius: 5px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+
+<script>
+    function calculateBandwidth() {
+        // 获取输入值
+        var read_latency = parseFloat(document.getElementById('read_latency').value);
+        var write_latency = parseFloat(document.getElementById('write_latency').value);
+        var page_size = parseFloat(document.getElementById('page_size').value);
+        var nr_channels = parseFloat(document.getElementById('nr_channels').value);
+        var luns_per_channel = parseFloat(document.getElementById('luns_per_channel').value);
+        var planes_per_lun = parseFloat(document.getElementById('planes_per_lun').value);
+
+        if (isNaN(page_size) || isNaN(read_latency) || isNaN(write_latency) || isNaN(nr_channels) || isNaN(luns_per_channel) || isNaN(planes_per_lun)) {
+            alert("请输入所有值，不能留空！");
+            return; // 如果有空值，停止计算
+        }
+
+        // 检查是否为正数
+        if (isNaN(page_size) || isNaN(read_latency) || isNaN(write_latency) || isNaN(nr_channels) || isNaN(luns_per_channel) || isNaN(planes_per_lun) ||
+            page_size < 0 || read_latency < 0 || write_latency < 0 || nr_channels < 0 || luns_per_channel < 0 || planes_per_lun < 0) {
+            alert("请输入所有正数值，不能留空！");
+            return; // 如果有非正数值，停止计算
+        }
+
+        // 检查读延迟和写延迟不能为0
+        if (read_latency === 0 || write_latency === 0) {
+            alert("读延迟和写延迟不能为0！");
+            return; // 如果读延迟或写延迟为0，停止计算
+        }
+
+        // 计算带宽
+        var read_bandwidth = page_size / read_latency * 1e6 * nr_channels * luns_per_channel * planes_per_lun / 1024;
+        var write_bandwidth = page_size / write_latency * 1e6 * nr_channels * luns_per_channel * planes_per_lun / 1024;
+
+        // 显示结果
+        var resultElement = document.getElementById('result');
+        resultElement.innerHTML = `<p>SSD读带宽: ${read_bandwidth.toFixed(2)}MiB/s</p><br><p>SSD写带宽: ${write_bandwidth.toFixed(2)}MiB/s</p>`;
+    }
+
+    function resetValues() {
+        // 重置所有输入框的值
+        document.getElementById('page_size').value = "";
+        document.getElementById('read_latency').value = "";
+        document.getElementById('write_latency').value = "";
+        document.getElementById('nr_channels').value = "";
+        document.getElementById('luns_per_channel').value = "";
+        document.getElementById('planes_per_lun').value = "";
+
+        // 清空结果
+        var resultElement = document.getElementById('result');
+        resultElement.innerHTML = "";
+    }
+</script>
+
+<body>
+    <h2>SSD性能计算器</h2>
+
+    <label for="page_size">闪存页大小(KiB):</label>
+    <input type="number" id="page_size" value="4" required><br>
+
+    <label for="read_latency">闪存读延迟(us):</label>
+    <input type="number" id="read_latency" value="50" required><br>
+
+    <label for="write_latency">闪存写延迟(us):</label>
+    <input type="number" id="write_latency" value="500" required><br>
+
+    <label for="nr_channels">SSD通道数量:</label>
+    <input type="number" id="nr_channels" value="8" required><br>
+
+    <label for="luns_per_channel">每个通道上的LUN/Die数量:</label>
+    <input type="number" id="luns_per_channel" value="8" required><br>
+
+    <label for="planes_per_lun">每个LUN上的Plane数量:</label>
+    <input type="number" id="planes_per_lun" value="4" required><br>
+
+    <button onclick="calculateBandwidth()">计算带宽</button>
+    <button onclick="resetValues()">重置</button>
+
+    <div id="result"></div>
+</body>
+
+</html>
