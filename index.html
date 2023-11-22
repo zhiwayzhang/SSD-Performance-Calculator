@@ -56,15 +56,19 @@
 
         #result p {
             width: 100%;
-            max-width: 300px;
+            max-width: 400px;
             margin: 10px 0;
             font-size: 20px;
-            width: 300px;
+            width: 400px;
             padding: 10px;
             background-color: #d0c0c0;
             border-radius: 5px;
             text-align: center;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .result-number {
+            color: blue;
         }
     </style>
 </head>
@@ -103,9 +107,9 @@
 
         // 显示结果
         var resultElement = document.getElementById('result');
-        resultElement.innerHTML = `<p>SSD读带宽: ${read_bandwidth.toFixed(2)} MiB/s</p>
+        resultElement.innerHTML = `<p>SSD顺序读带宽: <span class="result-number">${read_bandwidth.toFixed(2)}</span> MiB/s</p>
                                    <br>
-                                   <p>SSD写带宽: ${write_bandwidth.toFixed(2)} MiB/s</p>`;
+                                   <p>SSD顺序写带宽(无GC): <span class="result-number">${write_bandwidth.toFixed(2)}</span> MiB/s</p>`;
     }
 
     function resetValues() {
