@@ -103,7 +103,9 @@
 
         // 显示结果
         var resultElement = document.getElementById('result');
-        resultElement.innerHTML = `<p>SSD读带宽: ${read_bandwidth.toFixed(2)}MiB/s</p><br><p>SSD写带宽: ${write_bandwidth.toFixed(2)}MiB/s</p>`;
+        resultElement.innerHTML = `<p>SSD读带宽: ${read_bandwidth.toFixed(2)} MiB/s</p>
+                                   <br>
+                                   <p>SSD写带宽: ${write_bandwidth.toFixed(2)} MiB/s</p>`;
     }
 
     function resetValues() {
@@ -140,7 +142,7 @@
     <input type="number" id="luns_per_channel" value="8" required><br>
 
     <label for="planes_per_lun">每个LUN上的Plane数量:</label>
-    <input type="number" id="planes_per_lun" value="4" required><br>
+    <input type="number" id="planes_per_lun" value="1" required><br>
 
     <button onclick="calculateBandwidth()">计算带宽</button>
     <button onclick="resetValues()">重置</button>
