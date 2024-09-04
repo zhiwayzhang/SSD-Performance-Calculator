@@ -70,12 +70,43 @@
         .result-number {
             color: blue;
         }
+
+        #configList {
+            margin-top: 20px;
+            text-align: left;
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        #configList ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        #configList ul li {
+            background-color: #f0f0f0;
+            margin: 5px 0;
+            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 5px;
+        }
+
+        #configList button {
+            padding: 5px;
+            cursor: pointer;
+            border: none;
+            background-color: #ff4d4d;
+            color: white;
+            border-radius: 3px;
+        }
     </style>
 </head>
 
 <script>
     function calculateBandwidth() {
-        // 获取输入值
         var read_latency = parseFloat(document.getElementById('read_latency').value);
         var write_latency = parseFloat(document.getElementById('write_latency').value);
         var page_size = parseFloat(document.getElementById('page_size').value);
@@ -85,27 +116,17 @@
 
         if (isNaN(page_size) || isNaN(read_latency) || isNaN(write_latency) || isNaN(nr_channels) || isNaN(luns_per_channel) || isNaN(planes_per_lun)) {
             alert("请输入所有值，不能留空！");
-            return; // 如果有空值，停止计算
+            return;
         }
 
-        // 检查是否为正数
-        if (isNaN(page_size) || isNaN(read_latency) || isNaN(write_latency) || isNaN(nr_channels) || isNaN(luns_per_channel) || isNaN(planes_per_lun) ||
-            page_size < 0 || read_latency < 0 || write_latency < 0 || nr_channels < 0 || luns_per_channel < 0 || planes_per_lun < 0) {
-            alert("请输入所有正数值，不能留空！");
-            return; // 如果有非正数值，停止计算
-        }
-
-        // 检查读延迟和写延迟不能为0
         if (read_latency === 0 || write_latency === 0) {
             alert("读延迟和写延迟不能为0！");
-            return; // 如果读延迟或写延迟为0，停止计算
+            return;
         }
 
-        // 计算带宽
         var read_bandwidth = page_size / read_latency * 1e6 * nr_channels * luns_per_channel * planes_per_lun / 1024;
         var write_bandwidth = page_size / write_latency * 1e6 * nr_channels * luns_per_channel * planes_per_lun / 1024;
 
-        // 显示结果
         var resultElement = document.getElementById('result');
         resultElement.innerHTML = `<p>SSD顺序读带宽: <span class="result-number">${read_bandwidth.toFixed(2)}</span> MiB/s</p>
                                    <br>
@@ -113,22 +134,81 @@
     }
 
     function resetValues() {
-        // 重置所有输入框的值
         document.getElementById('page_size').value = "";
         document.getElementById('read_latency').value = "";
         document.getElementById('write_latency').value = "";
         document.getElementById('nr_channels').value = "";
         document.getElementById('luns_per_channel').value = "";
         document.getElementById('planes_per_lun').value = "";
+        document.getElementById('config_name').value = "";
 
-        // 清空结果
-        var resultElement = document.getElementById('result');
-        resultElement.innerHTML = "";
+        document.getElementById('result').innerHTML = "";
     }
+
+    function saveConfig() {
+        var config_name = document.getElementById('config_name').value;
+        var config = {
+            name: config_name || "配置 " + (new Date()).toLocaleString(), // 如果没有指定名称，生成一个默认名称
+            page_size: document.getElementById('page_size').value,
+            read_latency: document.getElementById('read_latency').value,
+            write_latency: document.getElementById('write_latency').value,
+            nr_channels: document.getElementById('nr_channels').value,
+            luns_per_channel: document.getElementById('luns_per_channel').value,
+            planes_per_lun: document.getElementById('planes_per_lun').value
+        };
+
+        if (!config.page_size || !config.read_latency || !config.write_latency || !config.nr_channels || !config.luns_per_channel || !config.planes_per_lun) {
+            alert("请填写所有字段再保存！");
+            return;
+        }
+
+        var configs = JSON.parse(localStorage.getItem('ssdConfigs')) || [];
+        configs.push(config);
+        localStorage.setItem('ssdConfigs', JSON.stringify(configs));
+
+        loadConfigList();
+    }
+
+    function loadConfig(index) {
+        var configs = JSON.parse(localStorage.getItem('ssdConfigs'));
+        var config = configs[index];
+
+        document.getElementById('config_name').value = config.name;
+        document.getElementById('page_size').value = config.page_size;
+        document.getElementById('read_latency').value = config.read_latency;
+        document.getElementById('write_latency').value = config.write_latency;
+        document.getElementById('nr_channels').value = config.nr_channels;
+        document.getElementById('luns_per_channel').value = config.luns_per_channel;
+        document.getElementById('planes_per_lun').value = config.planes_per_lun;
+    }
+
+    function deleteConfig(index) {
+        var configs = JSON.parse(localStorage.getItem('ssdConfigs'));
+        configs.splice(index, 1);
+        localStorage.setItem('ssdConfigs', JSON.stringify(configs));
+        loadConfigList();
+    }
+
+    function loadConfigList() {
+        var configs = JSON.parse(localStorage.getItem('ssdConfigs')) || [];
+        var configListElement = document.getElementById('configList');
+        configListElement.innerHTML = "<ul>" + configs.map((config, index) => {
+            return `<li>
+                        <span>${config.name}</span>
+                        <button onclick="loadConfig(${index})">加载</button>
+                        <button onclick="deleteConfig(${index})">删除</button>
+                    </li>`;
+        }).join('') + "</ul>";
+    }
+
+    window.onload = loadConfigList;
 </script>
 
 <body>
     <h2>SSD性能计算器</h2>
+
+    <label for="config_name">配置名称(可选):</label>
+    <input type="text" id="config_name" placeholder="输入配置名称" value="default_config"><br>
 
     <label for="page_size">闪存页大小(KiB):</label>
     <input type="number" id="page_size" value="4" required><br>
@@ -150,8 +230,12 @@
 
     <button onclick="calculateBandwidth()">计算带宽</button>
     <button onclick="resetValues()">重置</button>
+    <button onclick="saveConfig()">保存配置</button>
 
     <div id="result"></div>
+
+    <div id="configList"></div>
+
 </body>
 
 </html>
